@@ -1,15 +1,17 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem;
 
 namespace Script
 {
     [RequireComponent(typeof(PlayerInput))]
+    [RequireComponent(typeof(NavMeshAgent))]
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private float speed;
         [Range(0.1f,10)]
-        [SerializeField] private float gravoty;
+        [SerializeField] private float gravity;
         [SerializeField] private float jumpDistance;
         
         private float rotationPower = 3f;
@@ -19,14 +21,8 @@ namespace Script
         private Vector2 look = Vector2.zero;
         private Vector3 nextPosition;
         private Vector2 velocity;
-        private CharacterController controller;
         public GameObject followTransform;
         private Quaternion nextRotation;
-
-        private void Start()
-        {
-            controller = GetComponent<CharacterController>();
-        }
 
         public void OnMove(InputValue value)
         {
@@ -36,6 +32,11 @@ namespace Script
         public void OnMouse(InputValue value)
         {
             look = value.Get<Vector2>();
+        }
+
+        private void Awake()
+        {
+            
         }
 
         private void Update()
@@ -75,8 +76,7 @@ namespace Script
 
             var moveSpeed = speed / 100f;
             var position = (transform.forward * move.y * moveSpeed) + (transform.right * move.x * moveSpeed);
-            nextPosition = transform.position + position;        
-        
+            nextPosition = transform.position + position;
 
             //Set the player rotation based on the look transform
             transform.rotation = Quaternion.Euler(0, followTransform.transform.rotation.eulerAngles.y, 0);
@@ -86,22 +86,26 @@ namespace Script
 
         private void FixedUpdate()
         {
-            var worldDeltaPosition = nextPosition - transform.position;
-            
-            //Map to local space
-            var dX = Vector3.Dot(transform.right, worldDeltaPosition);
-            var dY = Vector3.Dot(transform.forward, worldDeltaPosition);
-            var deltaPosition = new Vector2(dX, dY);
-            
-            float smooth = Mathf.Min(1.0f, Time.deltaTime / 0.15f);
-            smoothDeltaPosition = Vector2.Lerp(smoothDeltaPosition, deltaPosition, smooth);
-
-            if (Time.deltaTime > 1e-5f)
+            if (move != Vector2.zero)
             {
-                velocity = smoothDeltaPosition / Time.deltaTime;
-            }
+                var worldDeltaPosition = nextPosition - transform.position;
+            
+                //Map to local space
+                var dX = Vector3.Dot(transform.right, worldDeltaPosition);
+                var dY = Vector3.Dot(transform.forward, worldDeltaPosition);
+                var deltaPosition = new Vector2(dX, dY);
+            
+                float smooth = Mathf.Min(1.0f, Time.deltaTime / 0.15f);
+                smoothDeltaPosition = Vector2.Lerp(smoothDeltaPosition, deltaPosition, smooth);
 
-            transform.position = nextPosition;
+                if (Time.deltaTime > 1e-5f)
+                {
+                    velocity = smoothDeltaPosition / Time.deltaTime;
+                }
+
+                transform.position = nextPosition;
+            }
+            
         }
     }
 }
