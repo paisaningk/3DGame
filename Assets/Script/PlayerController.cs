@@ -17,7 +17,7 @@ namespace Script
         private float rotationPower = 3f;
         private float rotationLerp = 0.5f;
         private Vector2 smoothDeltaPosition = Vector2.zero;
-        private Vector2 move = Vector2.zero;
+        public Vector2 move = Vector2.zero;
         private Vector2 look = Vector2.zero;
         private Vector3 nextPosition;
         private Vector2 velocity;
